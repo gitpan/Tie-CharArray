@@ -2,3 +2,4 @@ CharArray.pm
 MANIFEST
 Makefile.PL
 README
+test.pl

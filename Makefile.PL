@@ -4,7 +4,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'		=> 'Tie::CharArray',
     'VERSION_FROM'	=> 'CharArray.pm',
-    'PREREQ_PM'		=> {'Tie::Array' => 0},
+    'PREREQ_PM'		=> {},
     ($] < 5.005 ? () :
        (ABSTRACT_FROM   => 'CharArray.pm',
         AUTHOR          => 'Ilmari Karonen <perl@itz.pp.sci.fi>')),

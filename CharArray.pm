@@ -1,16 +1,29 @@
 use strict;
 require 5.005; # needs 4-arg substr
-$Tie::CharArray::VERSION = '0.02';
+$Tie::CharArray::VERSION = '1.00';
 
 # POD documentation after __END__ below
 
 package Tie::CharArray;
-use base 'Tie::Array';
-use Carp;
+use base 'Exporter';
+use vars '@EXPORT_OK';
+@EXPORT_OK = qw( chars codes );
+
+
+sub chars ($) {
+    tie my @chars, 'Tie::CharArray', $_[0];
+    return wantarray ? @chars : \@chars;
+}
+sub codes ($) {
+    tie my @codes, 'Tie::CharArray::Ord', $_[0];
+    return wantarray ? @codes : \@codes;
+}
+
 
 sub TIEARRAY {
     my $class = shift;
-    carp "Too many parameters for tie to $class" if @_ > 1 and $^W;
+    require Carp and Carp::carp("Too many parameters for tie to $class")
+	 if @_ > 1 and $^W;
     my $self = @_ ? \\$_[0] : \\(my $foo = ""); 
     bless $self, $class;
 }
@@ -63,6 +76,19 @@ Tie::CharArray - Access Perl scalars as arrays of characters
     $bar[0]--;        # $foobar = '@ string!'
     pop @bar;         # $foobar = '@ string'
     print "@bar\n";   # prints: 64 32 115 116 114 105 110 103
+
+=head2 Alternative interface functions
+
+    use Tie::CharArray qw( chars codes );
+    my $foobar = 'another string';
+    
+    my $chars = chars $foobar;  # arrayref in scalar context
+    push @$chars, '?';          # $foobar = 'another string?'
+
+    $_ += 2 for codes $foobar;  # tied array in list context
+                                # $foobar = 'cpqvjgt"uvtkpiA'
+
+    my @array = chars $foobar;  # WARNING: @array isn't tied!
 
 =head1 DESCRIPTION
 
@@ -140,17 +166,65 @@ alternative representation is provided by the subclass
 Tie::CharArray::Ord.  Note that it is perfectly possible to manipulate
 a single string through both interfaces at the same time.  As the
 array operations are still based on substr(), the first two of the
-above caveats apply here as well.
+above caveats apply here as well.  Unicode support depends on whether
+and how the underlying perl implementation supports it.
+
+=head2 Alternative interface functions
+
+Since using tie() can sometimes seem inconvenient, Tie::CharArray can
+also export two functions to perform the tying internally.  The
+functions are reproduced below in their entirety.
+
+    sub chars ($) {
+	tie my @chars, 'Tie::CharArray', $_[0];
+	return wantarray ? @chars : \@chars;
+    }
+    sub codes ($) {
+	tie my @codes, 'Tie::CharArray::Ord', $_[0];
+	return wantarray ? @codes : \@codes;
+    }
+
+When called in scalar context, they return a reference to a tied array
+through which the characters of the string given to them can be
+manipulated.  In list context the functions return the tied array
+itself.
+
+This is of rather limited use, since the tied array is only temporary,
+and assigning it to a permanent array only copies the values it
+contains but I<does not tie the permanent array>.  However, if the
+temporary array is passed to a subroutine or a C<foreach> loop, perl
+will alias the elements directly to the temporary array instead of
+copying them.  What that means in practice is that you can write:
+
+    foreach my $ch (chars $string) {
+        # reverse bits in each character 
+        $ch = pack "b*", unpack "B*", $ch;
+    }
 
 =head1 BUGS
 
 Exposing the peculiarities of substr() to the user might be considered
 a bug.  In any case, it is a feature which one should probably not
-rely on, as it might change in future revisions.
+rely too much on, as it might change in future revisions.
+
+Some sort of a warning might be appropriate if chars() or codes() is
+called in list context and the return value won't be aliased.  I just
+have no idea how to implement that in current versions of Perl.
+
+=head1 CHANGES
+
+=over 4
+
+=item 1.00 (14 April 2001)
+
+Added exportable functions chars() and codes().  Removed use of
+Tie::Array.  Only loads Carp if needed.
+
+=back
 
 =head1 AUTHORS
 
-Copyright 2000, Ilmari Karonen.  All rights reserved.
+Copyright 2000-2001, Ilmari Karonen.  All rights reserved.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
@@ -159,6 +233,6 @@ Address bug reports and comments to: perl@itz.pp.sci.fi
 
 =head1 SEE ALSO
 
-Tie::Array, substr()
+L<perltie>, L<perlfunc/substr>
 
 =cut

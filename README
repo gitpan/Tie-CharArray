@@ -1,5 +1,5 @@
 
-  Tie::CharArray -- version 0.02
+  Tie::CharArray -- version 1.00
 
 This module provides a way to manipulate Perl strings through tied
 arrays.  The operations are implemented in terms of substr(), pack()
@@ -10,14 +10,17 @@ two alternative representations are provided:
   * Strings as arrays of single-character strings
   * Strings as arrays of small integers
 
+As of 1.00, two exportable functions are also provided for those who
+wish to avoid using tie() directly.
+
 To install, just do:
 
    perl Makefile.PL
    make
+   make test
    make install
 
-No tests are included for this version.  This modules requires perl
-5.005 and the standard module Tie::Array.
+This module requires perl 5.005 or above.
 
 Copyright (c) 2000-2001 Ilmari Karonen.  All rights reserved.  This
 library is free software; you can redistribute it and/or modify it
